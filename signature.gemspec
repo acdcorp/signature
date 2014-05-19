@@ -20,4 +20,5 @@ Gem::Specification.new do |s|
   s.add_dependency "jruby-openssl" if defined?(JRUBY_VERSION)
   s.add_development_dependency "rspec"
   s.add_development_dependency "em-spec"
+  s.add_development_dependency "pry"
 end

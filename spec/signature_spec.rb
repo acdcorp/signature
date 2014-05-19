@@ -10,17 +10,38 @@ describe Signature do
       "query" => "params",
       "go" => "here"
     })
+
+    @headers = {
+      "X-API-AUTH-VERSION" => "1.0",
+      "X-API-AUTH-KEY" => "key",
+      "X-API-AUTH-SIGNATURE" => "9a86683edaf7db6782ac2d78d1958f3d53fa6aeb4c80542335ac64ee5e926411",
+      "X-API-AUTH-TIMESTAMP" => "3456"
+    }
   end
 
   describe "generating signatures" do
     before :each do
-      @signature = "3b237953a5ba6619875cbb2a2d43e8da9ef5824e8a2c689f6284ac85bc1ea0db"
+      @signature = "9a86683edaf7db6782ac2d78d1958f3d53fa6aeb4c80542335ac64ee5e926411"
     end
 
     it "should generate signature correctly" do
       @request.sign(@token)
       string = @request.send(:string_to_sign)
-      string.should == "POST\n/some/path\nauth_key=key&auth_timestamp=1234&auth_version=1.0&go=here&query=params"
+      # string.should == "POST\n/some/path\nauth_key=key&auth_timestamp=1234&auth_version=1.0&go=here&query=params"
+      string.should ==  {
+                          api: {
+                            method: "POST",
+                            path: "/some/path",
+                            timestamp: "1234",
+                            version: "1.0"
+                          },
+                          params: {
+                            go: "here",
+                            query: "params"
+                          }
+                        }.to_json
+
+      # "{\"api\":{\"method\":\"POST\",\"path\":\"/some/path\",\"timestamp\":null,\"version\":null},\"params\":{\"query\":\"params\",\"go\":\"here\"}}"
 
       digest = OpenSSL::Digest::SHA256.new
       signature = OpenSSL::HMAC.hexdigest(digest, @token.secret, string)
@@ -37,7 +58,7 @@ describe Signature do
 
       @request.sign(@token)
       @request.auth_hash.should == {
-        :auth_signature => "da078fcedd72941b6c873caa40d0d6b2000ebfc700cee802b128dd20f72e74e9",
+        :auth_signature => "e4b1eee7fbe9beb5aebcd918b45d53c76a69157e8e3575d636a370b5afb3c662",
         :auth_version => "1.0",
         :auth_key => "key",
         :auth_timestamp => '1234'
@@ -64,7 +85,7 @@ describe Signature do
       @request.query_hash = {
         "things" => ["thing1", "thing2"]
       }
-      @request.send(:string_to_sign).should == "POST\n/some/path\nthings[]=thing1&things[]=thing2"
+      @request.send(:string_to_sign).should == "{\"api\":{\"method\":\"POST\",\"path\":\"/some/path\",\"timestamp\":null,\"version\":null},\"params\":{\"things\":[\"thing1\",\"thing2\"]}}"
     end
 
     # This may well change in auth version 2
@@ -72,14 +93,14 @@ describe Signature do
       @request.query_hash = {
         "key;" => "value@"
       }
-      @request.send(:string_to_sign).should == "POST\n/some/path\nkey;=value@"
+      @request.send(:string_to_sign).should == "{\"api\":{\"method\":\"POST\",\"path\":\"/some/path\",\"timestamp\":null,\"version\":null},\"params\":{\"key;\":\"value@\"}}"
     end
 
     it "should cope with requests where the value is nil (antiregression)" do
       @request.query_hash = {
         "key" => nil
       }
-      @request.send(:string_to_sign).should == "POST\n/some/path\nkey="
+      @request.send(:string_to_sign).should == "{\"api\":{\"method\":\"POST\",\"path\":\"/some/path\",\"timestamp\":null,\"version\":null},\"params\":{\"key\":null}}"
     end
 
     it "should use the path to generate signature" do
@@ -101,6 +122,31 @@ describe Signature do
       }
       @request.sign(@token)[:signature].should_not == @signature
     end
+
+    it "should accept authentication parameters via HTTP headers" do
+      request = Signature::Header::Request.new('POST', '/some/path/with/headers', {
+        "query" => "params",
+        "go" => "here"
+      }, @headers)
+
+      string = request.send(:string_to_sign)
+      string.should ==  {
+                          api: {
+                            method: "POST",
+                            path: "/some/path/with/headers",
+                            timestamp: "3456",
+                            version: "1.0"
+                          },
+                          params: {
+                            go: "here",
+                            query: "params"
+                          }
+                        }.to_json
+
+      digest = OpenSSL::Digest::SHA256.new
+      signature = OpenSSL::HMAC.hexdigest(digest, @token.secret, string)
+      signature.should == "002b9f68b311a172995cb2f9c8ce3954b5adb37c721d501afae55a150f2f608d"
+    end
   end
 
   describe "verification" do
@@ -119,7 +165,7 @@ describe Signature do
       request = Signature::Request.new('POST', '/some/path', @params)
       lambda {
         request.authenticate_by_token!(@token)
-      }.should raise_error('Invalid signature: you should have sent HmacSHA256Hex("POST\n/some/path\nauth_key=key&auth_timestamp=1234&auth_version=1.0&go=here&query=params", your_secret_key), but you sent "asdf"')
+      }.should raise_error('Invalid signature: you should have sent HmacSHA256Hex("{\"api\":{\"method\":\"POST\",\"path\":\"/some/path\",\"timestamp\":\"1234\",\"version\":\"1.0\"},\"params\":{\"go\":\"here\",\"query\":\"params\"}}", your_secret_key), but you sent "asdf"')
     end
 
     it "should raise error if timestamp not available" do
@@ -162,7 +208,7 @@ describe Signature do
       Time.stub!(:now).and_return(Time.at(1234 + 1000))
       request.authenticate_by_token!(@token, nil).should == true
     end
-    
+
     it "should check that auth_version is supplied" do
       @params.delete(:auth_version)
       request = Signature::Request.new('POST', '/some/path', @params)
@@ -281,5 +327,6 @@ describe Signature do
         }
       end
     end
+
   end
 end

@@ -3,7 +3,8 @@ require 'signature'
 
 require 'rspec'
 require 'em-spec/rspec'
+require 'pry'
 
 RSpec.configure do |config|
-  
+
 end
