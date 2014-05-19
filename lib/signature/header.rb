@@ -7,7 +7,7 @@ module Signature
       def self.parse_headers headers={}
         hh = {}
         headers.each do |k,v|
-          if match = k.match(AUTH_HEADER_PREFIX_REGEX)
+          if match = k.upcase.match(AUTH_HEADER_PREFIX_REGEX)
             hh[match[1].downcase.gsub!('-', '_')] = v
           end
         end
