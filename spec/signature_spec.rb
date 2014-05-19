@@ -124,7 +124,7 @@ describe Signature do
     end
 
     it "should accept authentication parameters via HTTP headers" do
-      request = Signature::Header::Request.new('POST', '/some/path/with/headers', {
+      request = Signature::Request.new('POST', '/some/path/with/headers', {
         "query" => "params",
         "go" => "here"
       }, @headers)

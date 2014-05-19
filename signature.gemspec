@@ -6,9 +6,9 @@ Gem::Specification.new do |s|
   s.name        = "signature"
   s.version     = Signature::VERSION
   s.platform    = Gem::Platform::RUBY
-  s.authors     = ["Martyn Loughran"]
-  s.email       = ["me@mloughran.com"]
-  s.homepage    = "http://github.com/mloughran/signature"
+  s.authors     = ["Thomas Hanson"]
+  s.email       = ["thanson@acdcorp.com"]
+  s.homepage    = "http://github.com/acdcorp/signature"
   s.summary     = %q{Simple key/secret based authentication for apis}
   s.description = %q{Simple key/secret based authentication for apis}
 

@@ -3,6 +3,9 @@ require 'json'
 
 module Signature
   class Request
+    AUTH_HEADER_PREFIX = "X-API-"
+    AUTH_HEADER_PREFIX_REGEX = /^X\-API\-(AUTH\-.+)$/
+
     attr_accessor :path, :query_hash
 
     include QueryEncoder
@@ -10,12 +13,15 @@ module Signature
     # http://www.w3.org/TR/NOTE-datetime
     ISO8601 = "%Y-%m-%dT%H:%M:%SZ"
 
-    def initialize(method, path, query)
+    def initialize(method, path, query, headers=nil)
       raise ArgumentError, "Expected string" unless path.kind_of?(String)
       raise ArgumentError, "Expected hash" unless query.kind_of?(Hash)
 
       query_hash = {}
-      auth_hash = {}
+
+      auth_hash = self.class.parse_headers(headers) if headers
+      auth_hash ||= {}
+
       query.each do |key, v|
         k = key.to_s.downcase
         k[0..4] == 'auth_' ? auth_hash[k] = v : query_hash[k] = v
@@ -24,6 +30,16 @@ module Signature
       @method = method.upcase
       @path, @query_hash, @auth_hash = path, query_hash, auth_hash
       @signed = false
+    end
+
+    def self.parse_headers headers={}
+      hh = {}
+      headers.each do |k,v|
+        if match = k.upcase.match(AUTH_HEADER_PREFIX_REGEX)
+          hh[match[1].downcase.gsub!('-', '_')] = v
+        end
+      end
+      hh
     end
 
     # Sign the request with the given token, and return the computed
