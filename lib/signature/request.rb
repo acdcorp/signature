@@ -38,7 +38,7 @@ module Signature
         if match = k.upcase.match(AUTH_HEADER_PREFIX_REGEX)
           mindex = match[1] if match[1]
           mindex ||= match[2]
-          hh[mindex.downcase.gsub!('-', '_')] = v if mindex
+          hh[mindex.downcase.gsub('-', '_')] = v if mindex
         end
       end
       hh
