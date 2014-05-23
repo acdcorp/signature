@@ -36,7 +36,9 @@ module Signature
       hh = {}
       headers.each do |k,v|
         if match = k.upcase.match(AUTH_HEADER_PREFIX_REGEX)
-          hh[match[1].downcase.gsub!('-', '_')] = v
+          mindex = match[1] if match[1]
+          mindex ||= match[2]
+          hh[mindex.downcase.gsub!('-', '_')] = v if mindex
         end
       end
       hh

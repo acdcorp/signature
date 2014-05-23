@@ -2,7 +2,7 @@ require File.expand_path('../spec_helper', __FILE__)
 
 describe Signature do
   before :each do
-    Time.stub!(:now).and_return(Time.at(1234))
+    Time.stub(:now).and_return(Time.at(1234))
 
     @token = Signature::Token.new('key', 'secret')
 
@@ -178,15 +178,15 @@ describe Signature do
 
     it "should raise error if timestamp has expired (default of 600s)" do
       request = Signature::Request.new('POST', '/some/path', @params)
-      Time.stub!(:now).and_return(Time.at(1234 + 599))
+      Time.stub(:now).and_return(Time.at(1234 + 599))
       request.authenticate_by_token!(@token).should == true
-      Time.stub!(:now).and_return(Time.at(1234 - 599))
+      Time.stub(:now).and_return(Time.at(1234 - 599))
       request.authenticate_by_token!(@token).should == true
-      Time.stub!(:now).and_return(Time.at(1234 + 600))
+      Time.stub(:now).and_return(Time.at(1234 + 600))
       lambda {
         request.authenticate_by_token!(@token)
       }.should raise_error("Timestamp expired: Given timestamp (1970-01-01T00:20:34Z) not within 600s of server time (1970-01-01T00:30:34Z)")
-      Time.stub!(:now).and_return(Time.at(1234 - 600))
+      Time.stub(:now).and_return(Time.at(1234 - 600))
       lambda {
         request.authenticate_by_token!(@token)
       }.should raise_error("Timestamp expired: Given timestamp (1970-01-01T00:20:34Z) not within 600s of server time (1970-01-01T00:10:34Z)")
@@ -195,9 +195,9 @@ describe Signature do
     it "should be possible to customize the timeout grace period" do
       grace = 10
       request = Signature::Request.new('POST', '/some/path', @params)
-      Time.stub!(:now).and_return(Time.at(1234 + grace - 1))
+      Time.stub(:now).and_return(Time.at(1234 + grace - 1))
       request.authenticate_by_token!(@token, grace).should == true
-      Time.stub!(:now).and_return(Time.at(1234 + grace))
+      Time.stub(:now).and_return(Time.at(1234 + grace))
       lambda {
         request.authenticate_by_token!(@token, grace)
       }.should raise_error("Timestamp expired: Given timestamp (1970-01-01T00:20:34Z) not within 10s of server time (1970-01-01T00:20:44Z)")
@@ -205,7 +205,7 @@ describe Signature do
 
     it "should be possible to skip timestamp check by passing nil" do
       request = Signature::Request.new('POST', '/some/path', @params)
-      Time.stub!(:now).and_return(Time.at(1234 + 1000))
+      Time.stub(:now).and_return(Time.at(1234 + 1000))
       request.authenticate_by_token!(@token, nil).should == true
     end
 
