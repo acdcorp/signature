@@ -3,10 +3,10 @@ $:.push File.expand_path("../lib", __FILE__)
 require "signature/version"
 
 Gem::Specification.new do |s|
-  s.name        = "signature"
+  s.name        = "signature-acd"
   s.version     = Signature::VERSION
   s.platform    = Gem::Platform::RUBY
-  s.authors     = ["Thomas Hanson"]
+  s.authors     = ["Thomas Hanson", "CJ Lazell", "Thomas Hanson"]
   s.email       = ["thanson@acdcorp.com"]
   s.homepage    = "http://github.com/acdcorp/signature"
   s.summary     = %q{Simple key/secret based authentication for apis}
