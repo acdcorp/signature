@@ -4,7 +4,7 @@ require 'json'
 module Signature
   class Request
     AUTH_HEADER_PREFIX = "X-API-"
-    AUTH_HEADER_PREFIX_REGEX = /^X\-API\-(AUTH\-.+)$/
+    AUTH_HEADER_PREFIX_REGEX = /X\-API\-(AUTH\-.+)$|X_API_(AUTH_.+)$/
 
     attr_accessor :path, :query_hash
 
