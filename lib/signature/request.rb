@@ -79,7 +79,7 @@ module Signature
       # raise an AuthenticationError since passing tokens with empty secret is
       # a code error which should be fixed, not reported to the API's consumer
       if token.secret.nil? || token.secret.empty?
-        raise "Provided token is missing secret"
+        raise AuthenticationError, "Provided token is missing secret"
       end
 
       validate_version!
