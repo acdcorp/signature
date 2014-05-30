@@ -21,7 +21,7 @@ describe Signature do
 
   describe "generating signatures" do
     before :each do
-      @signature = "9a86683edaf7db6782ac2d78d1958f3d53fa6aeb4c80542335ac64ee5e926411"
+      @signature = "347562b85c63554df4255cb29b55954eac8b69aaf66fe54c9aaf163b1c5c534d"
     end
 
     it "should generate signature correctly" do
@@ -35,13 +35,13 @@ describe Signature do
                             timestamp: "1234",
                             version: "1.0"
                           },
-                          params: {
+                          data: {
                             go: "here",
                             query: "params"
                           }
                         }.to_json
 
-      # "{\"api\":{\"method\":\"POST\",\"path\":\"/some/path\",\"timestamp\":null,\"version\":null},\"params\":{\"query\":\"params\",\"go\":\"here\"}}"
+      # "{\"api\":{\"method\":\"POST\",\"path\":\"/some/path\",\"timestamp\":null,\"version\":null},\"data\":{\"query\":\"params\",\"go\":\"here\"}}"
 
       digest = OpenSSL::Digest::SHA256.new
       signature = OpenSSL::HMAC.hexdigest(digest, @token.secret, string)
@@ -58,7 +58,7 @@ describe Signature do
 
       @request.sign(@token)
       @request.auth_hash.should == {
-        :auth_signature => "e4b1eee7fbe9beb5aebcd918b45d53c76a69157e8e3575d636a370b5afb3c662",
+        :auth_signature => "dfbcc419122e2cfea16a3634da9f157e81ef369893773b65be913d5008484e72",
         :auth_version => "1.0",
         :auth_key => "key",
         :auth_timestamp => '1234'
@@ -85,7 +85,7 @@ describe Signature do
       @request.query_hash = {
         "things" => ["thing1", "thing2"]
       }
-      @request.send(:string_to_sign).should == "{\"api\":{\"method\":\"POST\",\"path\":\"/some/path\",\"timestamp\":null,\"version\":null},\"params\":{\"things\":[\"thing1\",\"thing2\"]}}"
+      @request.send(:string_to_sign).should == "{\"api\":{\"method\":\"POST\",\"path\":\"/some/path\",\"timestamp\":null,\"version\":null},\"data\":{\"things\":[\"thing1\",\"thing2\"]}}"
     end
 
     # This may well change in auth version 2
@@ -93,14 +93,14 @@ describe Signature do
       @request.query_hash = {
         "key;" => "value@"
       }
-      @request.send(:string_to_sign).should == "{\"api\":{\"method\":\"POST\",\"path\":\"/some/path\",\"timestamp\":null,\"version\":null},\"params\":{\"key;\":\"value@\"}}"
+      @request.send(:string_to_sign).should == "{\"api\":{\"method\":\"POST\",\"path\":\"/some/path\",\"timestamp\":null,\"version\":null},\"data\":{\"key;\":\"value@\"}}"
     end
 
     it "should cope with requests where the value is nil (antiregression)" do
       @request.query_hash = {
         "key" => nil
       }
-      @request.send(:string_to_sign).should == "{\"api\":{\"method\":\"POST\",\"path\":\"/some/path\",\"timestamp\":null,\"version\":null},\"params\":{\"key\":null}}"
+      @request.send(:string_to_sign).should == "{\"api\":{\"method\":\"POST\",\"path\":\"/some/path\",\"timestamp\":null,\"version\":null},\"data\":{\"key\":null}}"
     end
 
     it "should use the path to generate signature" do
@@ -137,7 +137,7 @@ describe Signature do
                             timestamp: "3456",
                             version: "1.0"
                           },
-                          params: {
+                          data: {
                             go: "here",
                             query: "params"
                           }
@@ -145,7 +145,7 @@ describe Signature do
 
       digest = OpenSSL::Digest::SHA256.new
       signature = OpenSSL::HMAC.hexdigest(digest, @token.secret, string)
-      signature.should == "002b9f68b311a172995cb2f9c8ce3954b5adb37c721d501afae55a150f2f608d"
+      signature.should == "eab6de56a58705b147dc78f099ea0ae9a1afc36eaa4e3403feac1c49cc557c70"
     end
   end
 
@@ -165,7 +165,7 @@ describe Signature do
       request = Signature::Request.new('POST', '/some/path', @params)
       lambda {
         request.authenticate_by_token!(@token)
-      }.should raise_error('Invalid signature: you should have sent HmacSHA256Hex("{\"api\":{\"method\":\"POST\",\"path\":\"/some/path\",\"timestamp\":\"1234\",\"version\":\"1.0\"},\"params\":{\"go\":\"here\",\"query\":\"params\"}}", your_secret_key), but you sent "asdf"')
+      }.should raise_error('Invalid signature: you should have sent HmacSHA256Hex("{\"api\":{\"method\":\"POST\",\"path\":\"/some/path\",\"timestamp\":\"1234\",\"version\":\"1.0\"},\"data\":{\"go\":\"here\",\"query\":\"params\"}}", your_secret_key), but you sent "asdf"')
     end
 
     it "should raise error if timestamp not available" do
