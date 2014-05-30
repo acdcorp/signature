@@ -185,7 +185,7 @@ module Signature
             timestamp: auth_hash[:auth_timestamp] || auth_hash["auth_timestamp"],
             version: auth_hash[:auth_version] || auth_hash["auth_version"]
           },
-          params: parameters_sorted
+          data: parameters_sorted
         }.to_json
       end
 
